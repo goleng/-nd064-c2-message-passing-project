@@ -75,26 +75,102 @@ Type `exit` to exit the virtual OS and you will find yourself back in your compu
 
 Afterwards, you can test that `kubectl` works by running a command like `kubectl describe services`. It should not return any errors.
 
-### Steps
-1. `kubectl apply -f deployment/db-configmap.yaml` - Set up environment variables for the pods
-2. `kubectl apply -f deployment/db-secret.yaml` - Set up secrets for the pods
-3. `kubectl apply -f deployment/postgres.yaml` - Set up a Postgres database running PostGIS
-4. `kubectl apply -f deployment/udaconnect-api.yaml` - Set up the service and deployment for the API
-5. `kubectl apply -f deployment/udaconnect-app.yaml` - Set up the service and deployment for the web app
-6. `sh scripts/run_db_command.sh <POD_NAME>` - Seed your database against the `postgres` pod. (`kubectl get pods` will give you the `POD_NAME`)
+### Steps 
+#### Deploy Kafka on k3s with Helm 
+##### From Homebrew (MacOS)
+```
+brew install helm
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install my-release bitnami/kafka
+```
+##### From Chocolatey (Windows)
+```
+choco install kubernetes-helm
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install my-release bitnami/kafka
+```
+##### From Apt (Debian/Ubuntu)
+```
+curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+sudo apt-get install apt-transport-https --yes
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install my-release bitnami/kafka
+```
+Once the installation complete, You should see output similar to the one that I've shown below.
+```
+NAME: my-release
+LAST DEPLOYED: Wed Nov 23 21:50:05 2022
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CHART NAME: kafka
+CHART VERSION: 19.1.0
+APP VERSION: 3.3.1
 
-Manually applying each of the individual `yaml` files is cumbersome but going through each step provides some context on the content of the starter project. In practice, we would have reduced the number of steps by running the command against a directory to apply of the contents: `kubectl apply -f deployment/`.
+** Please be patient while the chart is being deployed **
 
-Note: The first time you run this project, you will need to seed the database with dummy data. Use the command `sh scripts/run_db_command.sh <POD_NAME>` against the `postgres` pod. (`kubectl get pods` will give you the `POD_NAME`). Subsequent runs of `kubectl apply` for making changes to deployments or services shouldn't require you to seed the database again!
+Kafka can be accessed by consumers via port 9092 on the following DNS name from within your cluster:
+
+    my-release-kafka.default.svc.cluster.local
+
+Each Kafka broker can be accessed by producers via port 9092 on the following DNS name(s) from within your cluster:
+
+    my-release-kafka-0.my-release-kafka-headless.default.svc.cluster.local:9092
+
+To create a pod that you can use as a Kafka client run the following commands:
+
+    kubectl run my-release-kafka-client --restart='Never' --image docker.io/bitnami/kafka:3.3.1-debian-11-r1 --namespace default --command -- sleep infinity
+    kubectl exec --tty -i my-release-kafka-client --namespace default -- bash
+
+    PRODUCER:
+        kafka-console-producer.sh \
+
+            --broker-list my-release-kafka-0.my-release-kafka-headless.default.svc.cluster.local:9092 \
+            --topic test
+
+    CONSUMER:
+        kafka-console-consumer.sh \
+
+            --bootstrap-server my-release-kafka.default.svc.cluster.local:9092 \
+            --topic test \
+            --from-beginning
+```
+The project consist of different microservices organized in modules. Follow the follow steps to run the application. 
+
+#### Deploy database and other configuration settings
+1. In the root folder, run `$ kubectl apply -f deployment/`
+2. Check the status of the deployed postgres DB, run `$ kubectl get pods`
+3. When the pods status is 'running', run the script located in the script folder, run `$ sh scripts\run_db_command <POSTGRES_DATABASE_POD_NAME>`
+
+#### Deploy Person Microservice 
+1. In the person_service folder, run `$ kubectl apply -f deployment/`
+
+#### Deploy Connection Microservice 
+1. In the connection_service folder, run `$ kubectl apply -f deployment/`
+
+#### Deploy Location Producer Microservice
+1. In the location_producer folder, run `$ kubectl apply -f deployment/`
+
+#### Deploy Location Consumer Microservice 
+1. In the location_consumer folder, run `$ kubectl apply -f deployment/`
+
+#### Deploy Frontend Microservice 
+1. In the frontend folder, run `$ kubectl apply -f deployment/`
+
 
 ### Verifying it Works
-Once the project is up and running, you should be able to see 3 deployments and 3 services in Kubernetes:
-`kubectl get pods` and `kubectl get services` - should both return `udaconnect-app`, `udaconnect-api`, and `postgres`
+Once the project is up and running, you should be able to see 5 deployments and 5 services in Kubernetes:
+`kubectl get pods` and `kubectl get services` - should both return `udaconnect-app`, `person-service-api`, `connection-service-api`, `location-event-producer-api`, `location-event-consumer-api`, and `postgres`
 
 
 These pages should also load on your web browser:
-* `http://localhost:30001/` - OpenAPI Documentation
-* `http://localhost:30001/api/` - Base path for API
+* `http://localhost:30001/` - Person Service API
+* `http://localhost:30002/` - Connection Service API
 * `http://localhost:30000/` - Frontend ReactJS Application
 
 #### Deployment Note
