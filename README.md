@@ -140,7 +140,7 @@ To create a pod that you can use as a Kafka client run the following commands:
             --topic test \
             --from-beginning
 ```
-The project consist of different microservices organized in modules. Follow the follow steps to run the application. 
+The project consist of different microservices organized in modules. Follow the follow steps below to run the application. 
 
 #### Deploy database and other configuration settings
 1. In the root folder, run `$ kubectl apply -f deployment/`
