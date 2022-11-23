@@ -31,7 +31,7 @@ spec:
         service: person-service-api
     spec:
       containers:
-      - image: udacity/nd064-udaconnect-api:latest
+      - image: goleng/person-service-api:latest
         name: person-service-api
         imagePullPolicy: Always
         env:

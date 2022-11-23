@@ -31,7 +31,7 @@ spec:
         service: connection-service-api
     spec:
       containers:
-      - image: udacity/nd064-udaconnect-api:latest
+      - image: goleng/connection-service-api:latest
         name: connection-service-api
         imagePullPolicy: Always
         env:
