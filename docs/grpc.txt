@@ -1,0 +1,7 @@
+To make a sample request, within the modules/location_produdcer folder, run the 'client.py' file. 
+The client will make a request to the gRPC server with the sample payload based on the definitions located in location_event.proto file. 
+This file {location_event.proto} contains our location event message structure and the service. 
+
+How to run a test on local machine: 
+ - Server: python server.py 
+ - Client: python client.py

@@ -1,0 +1,17 @@
+The task was to enhanced a PoC (Proof-of-Concept) application that ingest location data named UdaConnect into an MVP (Minimum Viaable Product) to facilitate people identification via connection proximity. 
+
+In order to handle large user location data efficiently, a microservice architecture was designed to help managed different components of the monolith application. 
+The idea is to decouple various components of the application into individual components - seperation of concerns and also to speed up some components.  
+These components are listed below for clarity:
+
+- Person Microservice: A RESTful API for storing users information to the database
+- Connection Microservice: A RESTful API responsible for people's connection identification. It relies on the person and location data to compute connection distances. 
+- Location Event Producer Microservice: gRPC responsible for producing user location data sent from mobile devices. 
+    - The choice of gRPC here is to leverage gRPC speed and efficiency for processing large volume of data due to the tight packing of Protocol Buffers and the use of HTTP/2. 
+    - In addition, Kafka cluster is leveraged that receive location data to be consumed by another service - location event consumer microservice.
+- Location Event Consumer Microservice: Consume data from Kafka clusters via Location Event Microservice and stores the data to the database - a postgres database. 
+
+In this MVP, we use a single database containing two tables: 
+- person table
+- location table
+However, it's also possible to design the architecture with two databases depending on the needs of the users. But for this iteration, it is sufficient to use a signle database. 
