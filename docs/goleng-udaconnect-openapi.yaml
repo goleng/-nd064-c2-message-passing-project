@@ -1,0 +1,183 @@
+---
+openapi: 3.0.1
+info:
+  title: Udaconect API
+  description: API for Udaconnect Application
+  version: "0.1"
+servers:
+- url: /
+paths:
+  /api/persons:
+    get:
+      summary: Retrieves all persons
+      description: Retrieve all persons in the database
+      operationId: getAllPersons
+      responses:
+        "200":
+          description: All persons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+        "400":
+          description: Bad request
+  /api/persons/{person_id}:
+    get:
+      summary: Retrieves specific person by ID
+      description: Retrieve specific person by ID
+      operationId: getSpecificPerson
+      parameters:
+      - name: person_id
+        in: path
+        description: Person ID to retrieve from the database
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Specific person
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+        "400":
+          description: Bad request parameter
+  /api/locations/{location_id}:
+    get:
+      summary: Retrieves specific location by ID
+      description: Retrieves specific location by ID
+      operationId: getLocationById
+      parameters:
+      - name: location_id
+        in: path
+        description: ID of the location to get
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Specific location
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        "400":
+          description: Bad request parameter
+  /api/{person_id}/connection:
+    get:
+      description: Retrieve connection proximity by person ID
+      operationId: GetConnectionById
+      parameters:
+      - name: person_id
+        in: path
+        description: Person ID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: distance
+        in: query
+        description: Proximity to users
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+      - name: end_date
+        in: query
+        description: Upper bound of date range
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      - name: start_date
+        in: query
+        description: Lower bound of date range
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Connections'
+        "404":
+          description: Requested URL was not found
+        "500":
+          description: Internal Server Error
+components:
+  schemas:
+    Person:
+      required:
+      - company_name
+      - first_name
+      - id
+      - last_name
+      type: object
+      properties:
+        company_name:
+          type: string
+          example: Thomas & Krueger Inc
+        last_name:
+          type: string
+          example: Kohlmann
+        id:
+          type: integer
+          example: 100
+        first_name:
+          type: string
+          example: Marios
+    Location:
+      required:
+      - creation_time
+      - id
+      - latitude
+      - longitude
+      - person_id
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 44
+        person_id:
+          type: integer
+          example: 1
+        latitude:
+          type: string
+          example: "49.97091"
+        longitude:
+          type: string
+          example: "-27.91002"
+        creation_time:
+          type: string
+          format: date-time
+    Connections:
+      required:
+      - location
+      - person
+      type: object
+      properties:
+        location:
+          type: object
+        person:
+          type: object
